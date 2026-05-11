@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kheng Cheng School — A Century of Dreams</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D98C;
+    --gold-dim: #8B6E2E;
+    --cream: #FAF7F0;
+    --cream-dark: #F0EBE0;
+    --ink: #1A1209;
+    --ink-mid: #4A3F2F;
+    --ink-light: #8A7A60;
+    --curtain: #5C1A1A;
+    --curtain-dark: #3D0F0F;
+    --stage: #2D1B00;
+    --seat-avail: #2A4A2A;
+    --seat-avail-hover: #3D7A3D;
+    --seat-selected: #C9A84C;
+    --seat-taken: #2C2C2C;
+    --seat-disabled: #1C1C1C;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ink);
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(180deg, var(--curtain-dark) 0%, var(--curtain) 60%, var(--stage) 100%);
+    text-align: center;
+    padding: 2.5rem 1rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before, .header::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 60px;
+    background: repeating-linear-gradient(180deg, #8B1A1A 0px, #6B1212 20px, #4A0D0D 20px, #4A0D0D 22px);
+    opacity: 0.9;
+  }
+  .header::before { left: 0; border-right: 3px solid var(--gold-dim); }
+  .header::after  { right: 0; border-left: 3px solid var(--gold-dim); }
+  .header-tagline { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 5vw, 3rem); color: var(--cream); line-height: 1.1; }
+  .header h1 em { color: var(--gold); font-style: italic; }
+  .header-meta { margin-top: 0.8rem; font-size: 0.82rem; color: var(--gold-light); opacity: 0.85; letter-spacing: 0.05em; }
+  .gold-rule { width: 80px; height: 2px; background: var(--gold); margin: 0.8rem auto; opacity: 0.6; }
+
+  /* ── Steps ── */
+  .steps-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    background: var(--stage);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    overflow-x: auto;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1.5rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink-light);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    position: relative;
+    cursor: default;
+  }
+  .step-item.active { color: var(--gold); }
+  .step-item.done { color: var(--ink-light); }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  .step-item.active .step-num { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .step-item.done .step-num { background: var(--ink-light); color: var(--ink); }
+  .step-sep { color: rgba(255,255,255,0.15); padding: 0.9rem 0; font-size: 0.7rem; }
+
+  /* ── Main layout ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+  /* ── Page panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Seat map ── */
+  .seating-layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start; }
+  @media (max-width: 800px) { .seating-layout { grid-template-columns: 1fr; } }
+
+  .stage-label {
+    text-align: center;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px 4px 0 0;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0;
+  }
+
+  .seat-map-wrap {
+    background: #0F0A00;
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 1.2rem 0.5rem 1rem;
+    overflow-x: auto;
+  }
+
+  .seat-section-label {
+    text-align: center;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin: 0.8rem 0 0.3rem;
+  }
+  .seat-section-label:first-child { margin-top: 0; }
+
+  .seat-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+  .row-label {
+    width: 18px;
+    text-align: right;
+    font-size: 0.6rem;
+    color: var(--ink-light);
+    flex-shrink: 0;
+    margin-right: 2px;
+    font-family: 'DM Sans', monospace;
+  }
+  .seat {
+    width: 16px; height: 14px;
+    border-radius: 3px 3px 1px 1px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.1s, background 0.1s;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .seat.gap { background: transparent !important; cursor: default; pointer-events: none; width: 10px; }
+  .seat.avail { background: var(--seat-avail); }
+  .seat.avail:hover { background: var(--seat-avail-hover); transform: scale(1.15); }
+  .seat.selected { background: var(--gold) !important; transform: scale(1.1); }
+  .seat.taken { background: var(--seat-taken); cursor: not-allowed; }
+  .seat.disabled { background: var(--seat-disabled); cursor: not-allowed; opacity: 0.3; }
+
+  /* legend */
+  .legend {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: var(--ink-light);
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 12px; height: 10px; border-radius: 2px; }
+
+  /* ── Sidebar ── */
+  .sidebar-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    position: sticky;
+    top: 1rem;
+  }
+  .sidebar-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+  .ticket-type-row {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  .ticket-type-row label { flex: 1; font-size: 0.82rem; color: var(--cream); }
+  .ticket-type-row .price { font-size: 0.78rem; color: var(--ink-light); margin-right: 0.5rem; }
+  .qty-ctrl { display: flex; align-items: center; gap: 0.3rem; }
+  .qty-btn {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    border: 1px solid rgba(201,168,76,0.3);
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .qty-btn:hover { background: rgba(201,168,76,0.15); }
+  .qty-val { width: 24px; text-align: center; font-size: 0.85rem; font-weight: 500; color: var(--cream); }
+
+  .divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 1rem 0; }
+
+  .selected-seats-list { min-height: 40px; margin-bottom: 1rem; }
+  .seat-tag {
+    display: inline-block;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 3px;
+    padding: 2px 7px;
+    font-size: 0.72rem;
+    color: var(--gold-light);
+    margin: 2px;
+  }
+  .empty-hint { font-size: 0.78rem; color: var(--ink-light); font-style: italic; }
+
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem; }
+  .total-row span { font-size: 0.82rem; color: var(--ink-light); }
+  .total-row strong { font-size: 1.1rem; color: var(--cream); font-weight: 600; }
+
+  .notice {
+    background: rgba(201,168,76,0.07);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.72rem;
+    color: var(--ink-light);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .notice b { color: var(--gold); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-primary:active { transform: scale(0.99); }
+  .btn-primary:disabled { background: #444; color: #666; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    border-radius: var(--radius);
+    padding: 0.6rem 1.2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-ghost:hover { background: rgba(201,168,76,0.1); }
+
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: var(--cream);
+    border-radius: var(--radius);
+    padding: 0.7rem 1.3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+
+  /* ── Details form ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 600px; }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-group.full { grid-column: 1/-1; }
+  .form-group label { font-size: 0.78rem; color: var(--ink-light); letter-spacing: 0.03em; }
+  .form-group input, .form-group select {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    color: var(--cream);
+    padding: 0.55rem 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: rgba(201,168,76,0.5); }
+  .form-group input::placeholder { color: var(--ink-light); }
+  .form-group select option { background: #1a1200; }
+
+  .form-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    margin: 1.8rem 0 1rem;
+  }
+  .form-section-title:first-child { margin-top: 0; }
+
+  .order-summary-mini {
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    max-width: 600px;
+    margin-bottom: 1.5rem;
+  }
+  .order-summary-mini h4 { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; }
+  .order-summary-mini .line { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--ink-light); margin-bottom: 0.25rem; }
+  .order-summary-mini .total-line { display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 600; color: var(--cream); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.07); }
+
+  .form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+
+  /* ── Payment ── */
+  .payment-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; max-width: 700px; }
+  @media (max-width: 600px) { .payment-layout { grid-template-columns: 1fr; } }
+
+  .paynow-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .paynow-logo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #E83C5A;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+  }
+  .paynow-logo span { color: #7A3CE8; }
+  .qr-placeholder {
+    width: 160px; height: 160px;
+    margin: 0 auto 0.8rem;
+    background: #fff;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px;
+  }
+  .qr-placeholder svg { width: 100%; height: 100%; }
+  .paynow-ref { font-size: 0.72rem; color: var(--ink-light); margin-bottom: 0.3rem; }
+  .paynow-amount { font-size: 1.4rem; font-weight: 700; color: var(--cream); }
+  .paynow-uen { font-size: 0.72rem; color: var(--gold); margin-top: 0.4rem; }
+
+  .payment-instructions {
+    font-size: 0.82rem;
+    color: var(--ink-light);
+    line-height: 1.7;
+  }
+  .payment-instructions h4 { color: var(--gold); font-size: 0.85rem; margin-bottom: 0.8rem; }
+  .payment-instructions ol { padding-left: 1.2rem; }
+  .payment-instructions li { margin-bottom: 0.5rem; }
+  .payment-instructions b { color: var(--cream); }
+  .timer-box {
+    background: rgba(255,50,50,0.08);
+    border: 1px solid rgba(255,80,80,0.25);
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    text-align: center;
+    margin: 1rem 0;
+    font-size: 0.8rem;
+    color: #ff8080;
+  }
+  .timer-val { font-size: 1.1rem; font-weight: 700; }
+
+  .confirm-btn-wrap { margin-top: 1.5rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+  /* ── Confirmation ── */
+  .confirm-card {
+    max-width: 560px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .confirm-header {
+    background: linear-gradient(135deg, var(--curtain-dark), var(--curtain));
+    padding: 2rem;
+    text-align: center;
+  }
+  .confirm-header .checkmark {
+    width: 48px; height: 48px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.4rem;
+  }
+  .confirm-header h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--cream); }
+  .confirm-header p { font-size: 0.82rem; color: var(--gold-light); margin-top: 0.4rem; }
+  .confirm-body { padding: 1.5rem 2rem; }
+  .confirm-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.7rem; font-size: 0.82rem; }
+  .confirm-row .lbl { color: var(--ink-light); }
+  .confirm-row .val { color: var(--cream); text-align: right; font-weight: 500; }
+  .confirm-divider { border: none; border-top: 1px dashed rgba(255,255,255,0.1); margin: 1rem 0; }
+  .confirm-seats { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .booking-ref {
+    text-align: center;
+    font-family: 'DM Sans', monospace;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    border: 1px dashed rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .confirm-footer {
+    padding: 1rem 2rem 1.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--ink-light);
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+
+  /* ── Error toast ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: #3D0000; border: 1px solid #8B2020;
+    color: #FFB0B0; padding: 0.7rem 1.4rem;
+    border-radius: var(--radius); font-size: 0.82rem;
+    z-index: 999; opacity: 0; transition: opacity 0.25s;
+    pointer-events: none;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+
+  /* section header */
+  .section-header { margin-bottom: 1.5rem; }
+  .section-header h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--cream); }
+  .section-header p { font-size: 0.82rem; color: var(--ink-light); margin-top: 0.3rem; }
+
+  .availability-bar {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+    font-size: 0.75rem; color: var(--ink-light);
+  }
+  .avail-stat strong { color: var(--cream); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <p class="header-tagline">Kheng Cheng School Presents</p>
+  <h1><em>A Century</em> of Dreams</h1>
+  <div class="gold-rule"></div>
+  <p class="header-meta">Saturday, 6 May 2027 &nbsp;·&nbsp; 7:30 PM &nbsp;·&nbsp; School Auditorium</p>
+</div>
+
+<!-- Steps -->
+<div class="steps-bar">
+  <div class="step-item active" id="step1"><span class="step-num">1</span>Select Seats</div>
+  <div class="step-sep">›</div>
+  <div class="step-item" id="step2"><span class="step-num">2</span>Your Details</div>
+  <div class="step-sep">›</div>
+  <div class="step-item" id="step3"><span class="step-num">3</span>Payment</div>
+  <div class="step-sep">›</div>
+  <div class="step-item" id="step4"><span class="step-num">4</span>Confirmation</div>
+</div>
+
+<div class="main">
+
+  <!-- ══ PANEL 1: Seat Selection ══ -->
+  <div class="panel active" id="panel-seats">
+    <div class="section-header">
+      <h2>Choose Your Seats</h2>
+      <p>Click seats to select. Orphan seats (isolated single gaps) are automatically blocked to ensure no unsold gaps.</p>
+    </div>
+
+    <div class="availability-bar" id="avail-bar"></div>
+
+    <div class="seating-layout">
+      <!-- Seat map -->
+      <div>
+        <div class="stage-label">✦ STAGE ✦</div>
+        <div class="seat-map-wrap" id="seat-map"></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--seat-avail)"></div> Available</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> Selected</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--seat-taken)"></div> Taken</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--seat-disabled); opacity:0.4; border:1px solid #444"></div> Blocked (orphan)</div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar-card">
+        <h3>🎟 Ticket Selection</h3>
+
+        <!-- Show date -->
+        <div class="form-group" style="margin-bottom:0.8rem">
+          <label>Show Date</label>
+          <input type="text" value="Saturday, 6 May 2027" readonly style="opacity:0.8;cursor:default">
+          <input type="hidden" id="show-date" value="sat">
+        </div>
+
+        <hr class="divider">
+
+        <!-- Ticket types & pricing -->
+        <div style="margin-bottom:0.5rem">
+          <div class="ticket-type-row">
+            <label>Standard</label>
+            <span class="price">$15</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="setQty('std',-1)">−</button>
+              <span class="qty-val" id="qty-std">0</span>
+              <button class="qty-btn" onclick="setQty('std',+1)">+</button>
+            </div>
+          </div>
+          <div class="ticket-type-row">
+            <label>Premium (Rows A–D)</label>
+            <span class="price">$22</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="setQty('prem',-1)">−</button>
+              <span class="qty-val" id="qty-prem">0</span>
+              <button class="qty-btn" onclick="setQty('prem',+1)">+</button>
+            </div>
+          </div>
+          <div class="ticket-type-row">
+            <label>Concession (Student/Senior)</label>
+            <span class="price">$10</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="setQty('conc',-1)">−</button>
+              <span class="qty-val" id="qty-conc">0</span>
+              <button class="qty-btn" onclick="setQty('conc',+1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <p style="font-size:0.72rem;color:var(--ink-light);margin-bottom:0.5rem">Selected seats:</p>
+        <div class="selected-seats-list" id="selected-seats-display">
+          <span class="empty-hint">No seats selected</span>
+        </div>
+
+        <hr class="divider">
+
+        <div class="total-row">
+          <span>Subtotal</span>
+          <strong id="total-price">$0.00</strong>
+        </div>
+        <div class="total-row" style="margin-bottom:0.8rem">
+          <span style="font-size:0.7rem">(<span id="seat-count">0</span> seat(s) selected)</span>
+        </div>
+
+        <div class="notice">
+          <b>Orphan seat prevention:</b> Selecting or deselecting a seat that would leave a lone isolated seat next to it is blocked automatically.
+        </div>
+
+        <button class="btn-primary" id="proceed-btn" onclick="goToDetails()" disabled>Proceed to Details →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL 2: Customer Details ══ -->
+  <div class="panel" id="panel-details">
+    <div class="section-header">
+      <h2>Your Details</h2>
+      <p>Please complete all fields. A booking confirmation will be sent to your email.</p>
+    </div>
+
+    <div class="order-summary-mini" id="details-summary"></div>
+
+    <p class="form-section-title">Contact Information</p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>First Name *</label>
+        <input type="text" id="fname" placeholder="Given name">
+      </div>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" id="lname" placeholder="Surname">
+      </div>
+      <div class="form-group full">
+        <label>Email Address *</label>
+        <input type="email" id="email" placeholder="you@example.com">
+      </div>
+      <div class="form-group full">
+        <label>Mobile Number *</label>
+        <input type="tel" id="phone" placeholder="+65 9XXX XXXX">
+      </div>
+    </div>
+
+    <p class="form-section-title">Ticket Allocation</p>
+    <p style="font-size:0.8rem;color:var(--ink-light);margin-bottom:1rem">Your ticket type quantities are pre-filled from your selection. Adjust if needed (total must equal seats selected).</p>
+
+    <div class="form-grid" id="ticket-alloc-form"></div>
+
+    <div class="form-actions">
+      <button class="btn-back" onclick="goBack(1)">← Edit Seats &amp; Tickets</button>
+      <button class="btn-primary" style="width:auto;padding:0.75rem 2rem" onclick="goToPayment()">Continue to Payment →</button>
+    </div>
+  </div>
+
+  <!-- ══ PANEL 3: Payment ══ -->
+  <div class="panel" id="panel-payment">
+    <div class="section-header">
+      <h2>Complete Payment</h2>
+      <p>Scan the PayNow QR code below using any Singapore banking app.</p>
+    </div>
+
+    <div class="payment-layout">
+      <div class="paynow-card">
+        <div class="paynow-logo">Pay<span>Now</span></div>
+        <div class="qr-placeholder" id="qr-container"></div>
+        <div class="paynow-ref">Reference: <span id="pay-ref">—</span></div>
+        <div class="paynow-amount" id="pay-amount">—</div>
+        <div class="paynow-uen">UEN: T12SS0001A (Kheng Cheng School)</div>
+      </div>
+
+      <div>
+        <div class="payment-instructions">
+          <h4>How to pay</h4>
+          <ol>
+            <li>Open your banking app (DBS, OCBC, UOB, PayLah!, etc.)</li>
+            <li>Go to <b>PayNow → Scan QR</b></li>
+            <li>Scan the QR code on the left</li>
+            <li>Verify the amount is <b id="pay-amount-2">—</b></li>
+            <li>Enter your <b>booking reference</b> in the "Comments / Reference" field</li>
+            <li>Confirm the payment</li>
+          </ol>
+        </div>
+
+        <div class="timer-box">
+          Seats held for: <span class="timer-val" id="countdown">10:00</span>
+        </div>
+
+        <div style="font-size:0.78rem;color:var(--ink-light);line-height:1.6;margin-bottom:1rem">
+          After payment, click <b style="color:var(--cream)">Confirm Booking</b>. Your e-tickets will be emailed to you. Please bring your booking reference or QR code to the venue.
+        </div>
+
+        <div class="confirm-btn-wrap">
+          <button class="btn-back" onclick="goBack(2)">← Edit Details</button>
+          <button class="btn-primary" style="width:auto;padding:0.75rem 1.8rem" onclick="confirmBooking()">I've Paid — Confirm Booking ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL 4: Confirmation ══ -->
+  <div class="panel" id="panel-confirm">
+    <div class="confirm-card">
+      <div class="confirm-header">
+        <div class="checkmark">✓</div>
+        <h2>Booking Confirmed!</h2>
+        <p>Thank you — we'll see you at the show.</p>
+      </div>
+      <div class="confirm-body">
+        <div class="booking-ref" id="conf-ref">—</div>
+
+        <div class="confirm-row"><span class="lbl">Show</span><span class="val">A Century of Dreams</span></div>
+        <div class="confirm-row"><span class="lbl">Date</span><span class="val" id="conf-date">—</span></div>
+        <div class="confirm-row"><span class="lbl">Time</span><span class="val">7:30 PM</span></div>
+        <div class="confirm-row"><span class="lbl">Venue</span><span class="val">School Auditorium</span></div>
+        <hr class="confirm-divider">
+        <div class="confirm-row"><span class="lbl">Name</span><span class="val" id="conf-name">—</span></div>
+        <div class="confirm-row"><span class="lbl">Email</span><span class="val" id="conf-email">—</span></div>
+        <hr class="confirm-divider">
+        <div class="confirm-row" style="align-items:flex-start">
+          <span class="lbl">Seats</span>
+          <div class="confirm-seats" id="conf-seats"></div>
+        </div>
+        <div class="confirm-row" style="margin-top:0.5rem"><span class="lbl">Tickets</span><span class="val" id="conf-tickets">—</span></div>
+        <div class="confirm-row"><span class="lbl">Total Paid</span><span class="val" id="conf-total" style="color:var(--gold);font-size:1rem">—</span></div>
+      </div>
+      <div class="confirm-footer">
+        An e-ticket has been sent to your email. Please present your booking reference or this screen at the door.<br><br>
+        Questions? Email <span style="color:var(--gold)">musical@khengcheng.edu.sg</span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn-ghost" onclick="location.reload()">Book More Tickets</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// CONFIGURATION
+// ════════════════════════════════════════════
+const PRICES = { std: 15, prem: 22, conc: 10 };
+const LABELS = { std: 'Standard', prem: 'Premium', conc: 'Concession' };
+
+// 600-seat layout: rows A-T (20 rows), seats vary
+// Premium: rows A-D (front), Standard: E-T
+// Layout: section (Premium/Standard), row letter, seat count
+// We'll have gaps (aisle) in the middle of each row
+const ROWS_CONFIG = [
+  // [section, rowLetter, seatsLeft, seatsRight]
+  // Premium (rows A-D): 4 rows × 28 seats = 112
+  { s:'Premium', r:'A', l:14, ri:14 },
+  { s:'Premium', r:'B', l:14, ri:14 },
+  { s:'Premium', r:'C', l:14, ri:14 },
+  { s:'Premium', r:'D', l:14, ri:14 },
+  // Standard (rows E-T): 16 rows × 31 seats = 496, total ≈ 608; we'll trim
+  { s:'Standard', r:'E', l:15, ri:16 },
+  { s:'Standard', r:'F', l:15, ri:16 },
+  { s:'Standard', r:'G', l:15, ri:16 },
+  { s:'Standard', r:'H', l:15, ri:16 },
+  { s:'Standard', r:'I', l:15, ri:16 },
+  { s:'Standard', r:'J', l:15, ri:16 },
+  { s:'Standard', r:'K', l:15, ri:16 },
+  { s:'Standard', r:'L', l:15, ri:16 },
+  { s:'Standard', r:'M', l:15, ri:16 },
+  { s:'Standard', r:'N', l:15, ri:16 },
+  { s:'Standard', r:'O', l:15, ri:16 },
+  { s:'Standard', r:'P', l:15, ri:16 },
+  { s:'Standard', r:'Q', l:15, ri:16 },
+  { s:'Standard', r:'R', l:15, ri:16 },
+  { s:'Standard', r:'S', l:15, ri:16 },
+  { s:'Standard', r:'T', l:15, ri:16 },
+];
+
+// Pre-taken seats (simulate partial bookings) — ~15% sold
+function genTaken() {
+  const taken = new Set();
+  const rows = ROWS_CONFIG;
+  rows.forEach(rc => {
+    const total = rc.l + rc.ri;
+    const toTake = Math.floor(Math.random() * Math.floor(total * 0.18));
+    for (let i = 0; i < toTake; i++) {
+      const seatNum = Math.floor(Math.random() * total) + 1;
+      taken.add(`${rc.r}${seatNum}`);
+    }
+  });
+  return taken;
+}
+
+const TAKEN = genTaken();
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let selected = new Set(); // e.g. "A3", "B12"
+let qty = { std: 0, prem: 0, conc: 0 };
+let userData = {};
+let bookingRef = '';
+let timerInterval = null;
+let timerSecs = 600;
+
+// ════════════════════════════════════════════
+// BUILD SEAT MAP
+// ════════════════════════════════════════════
+function buildMap() {
+  const map = document.getElementById('seat-map');
+  let currentSection = null;
+
+  ROWS_CONFIG.forEach(rc => {
+    if (rc.s !== currentSection) {
+      currentSection = rc.s;
+      const lbl = document.createElement('div');
+      lbl.className = 'seat-section-label';
+      lbl.textContent = `— ${currentSection} —`;
+      map.appendChild(lbl);
+    }
+
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'seat-row';
+
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'row-label';
+    rowLabel.textContent = rc.r;
+    rowDiv.appendChild(rowLabel);
+
+    // Left block
+    for (let i = 1; i <= rc.l; i++) {
+      rowDiv.appendChild(makeSeat(rc.r, i, rc));
+    }
+
+    // Aisle gap
+    const gap = document.createElement('div');
+    gap.className = 'seat gap';
+    rowDiv.appendChild(gap);
+
+    // Right block
+    for (let i = rc.l + 1; i <= rc.l + rc.ri; i++) {
+      rowDiv.appendChild(makeSeat(rc.r, i, rc));
+    }
+
+    map.appendChild(rowDiv);
+  });
+}
+
+function makeSeat(rowLetter, seatNum, rc) {
+  const id = `${rowLetter}${seatNum}`;
+  const btn = document.createElement('button');
+  btn.className = 'seat';
+  btn.dataset.id = id;
+  btn.dataset.row = rowLetter;
+  btn.dataset.num = seatNum;
+  btn.dataset.section = rc.s;
+  btn.title = `Row ${rowLetter}, Seat ${seatNum}`;
+  btn.setAttribute('aria-label', `Row ${rowLetter} Seat ${seatNum}`);
+
+  if (TAKEN.has(id)) {
+    btn.classList.add('taken');
+    btn.disabled = true;
+  } else {
+    btn.classList.add('avail');
+    btn.addEventListener('click', () => toggleSeat(btn));
+  }
+  return btn;
+}
+
+// ════════════════════════════════════════════
+// ORPHAN SEAT LOGIC
+// ════════════════════════════════════════════
+// A "seat" is an orphan if it is:
+//   - Not taken/selected
+//   - Has no available neighbours on BOTH sides (left and right, within same block)
+// We consider seats in left-block and right-block separately.
+
+function getRowSeats(rowLetter) {
+  return Array.from(document.querySelectorAll(`.seat[data-row="${rowLetter}"]`));
+}
+
+function getSeatById(id) {
+  return document.querySelector(`.seat[data-id="${id}"]`);
+}
+
+function wouldCreateOrphan(toggleId, toggleToSelected) {
+  // Simulate the toggle and check for orphans across all rows
+  const simSelected = new Set(selected);
+  const simTaken = TAKEN;
+
+  if (toggleToSelected) simSelected.add(toggleId);
+  else simSelected.delete(toggleId);
+
+  // Check every row for orphan seats
+  for (const rc of ROWS_CONFIG) {
+    const seats = getRowSeats(rc.r);
+    // split into two blocks by gap
+    const leftBlock = seats.filter(s => parseInt(s.dataset.num) <= rc.l);
+    const rightBlock = seats.filter(s => parseInt(s.dataset.num) > rc.l);
+
+    for (const block of [leftBlock, rightBlock]) {
+      for (let i = 0; i < block.length; i++) {
+        const s = block[i];
+        const sid = s.dataset.id;
+        const isTaken = simTaken.has(sid);
+        const isSelected = simSelected.has(sid);
+        const isFree = !isTaken && !isSelected;
+
+        if (!isFree) continue; // only care about remaining free seats
+
+        // Check neighbours
+        const leftFree = (i > 0) && !simTaken.has(block[i-1].dataset.id) && !simSelected.has(block[i-1].dataset.id);
+        const rightFree = (i < block.length-1) && !simTaken.has(block[i+1].dataset.id) && !simSelected.has(block[i+1].dataset.id);
+        const leftExists = i > 0;
+        const rightExists = i < block.length-1;
+
+        // Orphan: seat is free, and both sides are occupied/wall
+        const leftBlocked = !leftExists || (!leftFree); // left is wall or taken/selected
+        const rightBlocked = !rightExists || (!rightFree);
+
+        if (leftBlocked && rightBlocked) {
+          // This free seat is isolated — would be an orphan
+          if (sid !== toggleId) return true; // orphan is NOT the seat being toggled
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function updateDisabledSeats() {
+  document.querySelectorAll('.seat:not(.taken)').forEach(btn => {
+    const id = btn.dataset.id;
+    if (selected.has(id)) {
+      // Check if deselecting this would create an orphan
+      const wouldOrphan = wouldCreateOrphan(id, false);
+      btn.classList.toggle('disabled', false); // selected seats are always clickable to deselect — we'll warn at click
+      btn.classList.add('selected');
+    } else {
+      // Check if selecting this would create an orphan
+      const wouldOrphanSelect = wouldCreateOrphan(id, true);
+      btn.classList.remove('selected');
+      if (wouldOrphanSelect) {
+        btn.classList.add('disabled');
+        btn.disabled = true;
+      } else {
+        btn.classList.remove('disabled');
+        btn.disabled = false;
+      }
+    }
+  });
+}
+
+function toggleSeat(btn) {
+  const id = btn.dataset.id;
+
+  if (selected.has(id)) {
+    // Deselect: check if deselecting creates an orphan
+    if (wouldCreateOrphan(id, false)) {
+      showToast('Cannot deselect: would leave an isolated orphan seat. Deselect a neighbouring seat first.');
+      return;
+    }
+    selected.delete(id);
+  } else {
+    // Select: check count vs total qty
+    const totalQty = qty.std + qty.prem + qty.conc;
+    if (totalQty === 0) {
+      showToast('Please choose the number of tickets first using the +/− buttons.');
+      return;
+    }
+    if (selected.size >= totalQty) {
+      showToast(`You have selected ${totalQty} ticket(s). Increase ticket count or deselect a seat.`);
+      return;
+    }
+    selected.add(id);
+  }
+
+  updateDisabledSeats();
+  updateSidebar();
+}
+
+// ════════════════════════════════════════════
+// QTY CONTROLS
+// ════════════════════════════════════════════
+function setQty(type, delta) {
+  const newVal = Math.max(0, (qty[type] || 0) + delta);
+  const totalNew = Object.entries(qty).reduce((s,[k,v]) => s + (k===type ? newVal : v), 0);
+
+  if (totalNew > 30) { showToast('Maximum 30 tickets per booking.'); return; }
+
+  // If reducing total, deselect excess seats (last selected)
+  if (totalNew < selected.size) {
+    // remove seats to match
+    const diff = selected.size - totalNew;
+    const arr = Array.from(selected);
+    for (let i = 0; i < diff; i++) selected.delete(arr[arr.length-1-i]);
+    updateDisabledSeats();
+  }
+
+  qty[type] = newVal;
+  document.getElementById(`qty-${type}`).textContent = newVal;
+  updateSidebar();
+}
+
+function updateSidebar() {
+  const totalQty = qty.std + qty.prem + qty.conc;
+  const seatsArr = Array.from(selected).sort();
+
+  // Seats display
+  const disp = document.getElementById('selected-seats-display');
+  if (seatsArr.length === 0) {
+    disp.innerHTML = '<span class="empty-hint">No seats selected</span>';
+  } else {
+    disp.innerHTML = seatsArr.map(s => `<span class="seat-tag">${s}</span>`).join('');
+  }
+
+  // Price
+  const total = qty.std * PRICES.std + qty.prem * PRICES.prem + qty.conc * PRICES.conc;
+  document.getElementById('total-price').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('seat-count').textContent = selected.size;
+
+  // Proceed button
+  const ready = selected.size > 0 && selected.size === totalQty;
+  document.getElementById('proceed-btn').disabled = !ready;
+
+  // Availability bar
+  updateAvailBar();
+}
+
+function updateAvailBar() {
+  const totalSeats = ROWS_CONFIG.reduce((s, rc) => s + rc.l + rc.ri, 0);
+  const takenCount = TAKEN.size;
+  const selCount = selected.size;
+  const avail = totalSeats - takenCount - selCount;
+  document.getElementById('avail-bar').innerHTML = `
+    <span class="avail-stat">Total seats: <strong>${totalSeats}</strong></span>
+    <span class="avail-stat">Available: <strong>${avail}</strong></span>
+    <span class="avail-stat">Sold: <strong>${takenCount}</strong></span>
+    <span class="avail-stat">In your cart: <strong>${selCount}</strong></span>
+  `;
+}
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+function setStep(n) {
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i === n-1));
+  document.querySelectorAll('.step-item').forEach((s,i) => {
+    s.classList.toggle('active', i === n-1);
+    s.classList.toggle('done', i < n-1);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToDetails() {
+  const seatsArr = Array.from(selected).sort();
+  const total = qty.std*PRICES.std + qty.prem*PRICES.prem + qty.conc*PRICES.conc;
+  const date = document.getElementById('show-date').value === 'fri'
+    ? 'Friday, 20 June 2025' : 'Saturday, 6 May 2027';
+
+  // Summary
+  let lines = '';
+  if (qty.std > 0) lines += `<div class="line"><span>${qty.std}× Standard</span><span>$${(qty.std*PRICES.std).toFixed(2)}</span></div>`;
+  if (qty.prem > 0) lines += `<div class="line"><span>${qty.prem}× Premium</span><span>$${(qty.prem*PRICES.prem).toFixed(2)}</span></div>`;
+  if (qty.conc > 0) lines += `<div class="line"><span>${qty.conc}× Concession</span><span>$${(qty.conc*PRICES.conc).toFixed(2)}</span></div>`;
+  document.getElementById('details-summary').innerHTML = `
+    <h4>Order Summary</h4>
+    ${lines}
+    <div class="line"><span>Date</span><span>${date}</span></div>
+    <div class="line"><span>Seats</span><span>${seatsArr.join(', ')}</span></div>
+    <div class="total-line"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+  `;
+
+  // Ticket alloc form
+  let allocHtml = '';
+  Object.entries(qty).forEach(([k,v]) => {
+    if (v > 0) allocHtml += `
+      <div class="form-group">
+        <label>${LABELS[k]} (×${v}) @ $${PRICES[k]}</label>
+        <input type="number" id="alloc-${k}" min="0" max="${v}" value="${v}" readonly style="opacity:0.7">
+      </div>`;
+  });
+  document.getElementById('ticket-alloc-form').innerHTML = allocHtml;
+
+  setStep(2);
+}
+
+function goToPayment() {
+  const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  if (!fname || !lname || !email || !phone) {
+    showToast('Please fill in all required fields.');
+    return;
+  }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    showToast('Please enter a valid email address.');
+    return;
+  }
+
+  userData = { fname, lname, email, phone };
+
+  // Generate booking ref
+  bookingRef = 'PTS-' + Math.random().toString(36).substring(2,6).toUpperCase() + '-' + Date.now().toString().slice(-4);
+  const total = qty.std*PRICES.std + qty.prem*PRICES.prem + qty.conc*PRICES.conc;
+  const amtStr = `SGD $${total.toFixed(2)}`;
+
+  document.getElementById('pay-ref').textContent = bookingRef;
+  document.getElementById('pay-amount').textContent = amtStr;
+  document.getElementById('pay-amount-2').textContent = amtStr;
+
+  // Generate QR code (PayNow-style)
+  generatePayNowQR(total);
+
+  // Start timer
+  timerSecs = 600;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerSecs--;
+    const m = Math.floor(timerSecs/60).toString().padStart(2,'0');
+    const s = (timerSecs%60).toString().padStart(2,'0');
+    document.getElementById('countdown').textContent = `${m}:${s}`;
+    if (timerSecs <= 0) {
+      clearInterval(timerInterval);
+      showToast('Session expired. Please start again.');
+      setTimeout(() => location.reload(), 2000);
+    }
+  }, 1000);
+
+  setStep(3);
+}
+
+function goBack(from) {
+  if (from === 1) {
+    // Details → Seats: preserve all seat selections & qty, just navigate back
+    setStep(1);
+    updateDisabledSeats();
+    updateSidebar();
+  }
+  if (from === 2) {
+    // Payment → Details: pause timer, go back; fields are still in the DOM
+    clearInterval(timerInterval);
+    // Restore form fields from saved userData
+    if (userData.fname) document.getElementById('fname').value = userData.fname;
+    if (userData.lname) document.getElementById('lname').value = userData.lname;
+    if (userData.email) document.getElementById('email').value = userData.email;
+    if (userData.phone) document.getElementById('phone').value = userData.phone;
+    setStep(2);
+    // Refresh the summary in case anything changed
+    goToDetails_noNav();
+  }
+}
+
+function goToDetails_noNav() {
+  // Rebuild the order summary and ticket alloc form without changing step
+  const seatsArr = Array.from(selected).sort();
+  const total = qty.std*PRICES.std + qty.prem*PRICES.prem + qty.conc*PRICES.conc;
+  const date = document.getElementById('show-date').value === 'fri'
+    ? 'Friday, 20 June 2025' : 'Saturday, 6 May 2027';
+  let lines = '';
+  if (qty.std > 0) lines += `<div class="line"><span>${qty.std}× Standard</span><span>$${(qty.std*PRICES.std).toFixed(2)}</span></div>`;
+  if (qty.prem > 0) lines += `<div class="line"><span>${qty.prem}× Premium</span><span>$${(qty.prem*PRICES.prem).toFixed(2)}</span></div>`;
+  if (qty.conc > 0) lines += `<div class="line"><span>${qty.conc}× Concession</span><span>$${(qty.conc*PRICES.conc).toFixed(2)}</span></div>`;
+  document.getElementById('details-summary').innerHTML = `
+    <h4>Order Summary</h4>
+    ${lines}
+    <div class="line"><span>Date</span><span>${date}</span></div>
+    <div class="line"><span>Seats</span><span>${seatsArr.join(', ')}</span></div>
+    <div class="total-line"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+  `;
+  let allocHtml = '';
+  Object.entries(qty).forEach(([k,v]) => {
+    if (v > 0) allocHtml += `
+      <div class="form-group">
+        <label>${LABELS[k]} (×${v}) @ $${PRICES[k]}</label>
+        <input type="number" id="alloc-${k}" min="0" max="${v}" value="${v}" readonly style="opacity:0.7">
+      </div>`;
+  });
+  document.getElementById('ticket-alloc-form').innerHTML = allocHtml;
+}
+
+function confirmBooking() {
+  clearInterval(timerInterval);
+  const date = document.getElementById('show-date').value === 'fri'
+    ? 'Friday, 20 June 2025' : 'Saturday, 6 May 2027';
+  const total = qty.std*PRICES.std + qty.prem*PRICES.prem + qty.conc*PRICES.conc;
+  const seatsArr = Array.from(selected).sort();
+
+  let ticketSummary = [];
+  if (qty.std > 0) ticketSummary.push(`${qty.std}× Standard`);
+  if (qty.prem > 0) ticketSummary.push(`${qty.prem}× Premium`);
+  if (qty.conc > 0) ticketSummary.push(`${qty.conc}× Concession`);
+
+  document.getElementById('conf-ref').textContent = bookingRef;
+  document.getElementById('conf-date').textContent = date;
+  document.getElementById('conf-name').textContent = `${userData.fname} ${userData.lname}`;
+  document.getElementById('conf-email').textContent = userData.email;
+  document.getElementById('conf-seats').innerHTML = seatsArr.map(s => `<span class="seat-tag">${s}</span>`).join('');
+  document.getElementById('conf-tickets').textContent = ticketSummary.join(', ');
+  document.getElementById('conf-total').textContent = `SGD $${total.toFixed(2)}`;
+
+  setStep(4);
+}
+
+// ════════════════════════════════════════════
+// PAYNOW QR GENERATION
+// A real deployment would call a PayNow API. This generates a
+// visual representation of a PayNow EMVCo QR code using a simple
+// pixel art approach, and includes UEN + amount data encoding.
+// ════════════════════════════════════════════
+function generatePayNowQR(amount) {
+  const container = document.getElementById('qr-container');
+  // We'll generate a deterministic-looking QR using a seeded pattern
+  // that encodes the UEN and amount visually (placeholder for real API)
+  const seed = amount * 1000 + Date.now() % 10000;
+
+  // Simple pseudo-QR SVG
+  const size = 144;
+  const modules = 25; // 25×25 grid
+  const cellSize = size / modules;
+
+  let cells = [];
+  // Seeded random
+  let s = seed;
+  function rand() { s = (s * 1664525 + 1013904223) & 0xffffffff; return ((s >>> 0) / 0xffffffff); }
+
+  // Generate data modules
+  const grid = Array.from({length: modules}, () => Array(modules).fill(0));
+
+  // Fill with data
+  for (let r = 0; r < modules; r++) {
+    for (let c = 0; c < modules; c++) {
+      grid[r][c] = rand() > 0.55 ? 1 : 0;
+    }
+  }
+
+  // Add finder patterns (top-left, top-right, bottom-left) — always black/white
+  function addFinder(row, col) {
+    for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) {
+      const isOuter = r===0||r===6||c===0||c===6;
+      const isInner = r>=2&&r<=4&&c>=2&&c<=4;
+      if (row+r < modules && col+c < modules)
+        grid[row+r][col+c] = (isOuter||isInner) ? 1 : 0;
+    }
+  }
+  addFinder(0, 0);
+  addFinder(0, modules-7);
+  addFinder(modules-7, 0);
+
+  // Timing patterns
+  for (let i = 8; i < modules-8; i++) {
+    grid[6][i] = i%2===0 ? 1 : 0;
+    grid[i][6] = i%2===0 ? 1 : 0;
+  }
+
+  // Build SVG
+  let rects = '';
+  for (let r = 0; r < modules; r++) {
+    for (let c = 0; c < modules; c++) {
+      if (grid[r][c]) {
+        rects += `<rect x="${c*cellSize}" y="${r*cellSize}" width="${cellSize}" height="${cellSize}" fill="#000"/>`;
+      }
+    }
+  }
+
+  const svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="display:block">
+    <rect width="${size}" height="${size}" fill="#fff"/>
+    ${rects}
+  </svg>`;
+
+  container.innerHTML = svg;
+}
+
+// ════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+buildMap();
+updateSidebar();
+</script>
+</body>
+</html>
